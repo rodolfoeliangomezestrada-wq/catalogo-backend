@@ -4,8 +4,8 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Conectado a MongoDB Atlas'))
@@ -15,25 +15,29 @@ const PeliculaSchema = new mongoose.Schema({
   titulo: String,
   genero: String,
   calificacion: Number,
-  anio: Number
+  anio: Number,
+  sinopsis: String,
+  portadaUrl: String
 });
 
 const Pelicula = mongoose.model('Pelicula', PeliculaSchema);
 
-// GET - Obtener todas
 app.get('/peliculas', async (req, res) => {
   const peliculas = await Pelicula.find().sort({ _id: -1 });
   res.json(peliculas);
 });
 
-// POST - Agregar nueva
 app.post('/peliculas', async (req, res) => {
   const nueva = new Pelicula(req.body);
   await nueva.save();
   res.json({ mensaje: 'Película registrada', nueva });
 });
 
-// DELETE - Eliminar
+app.put('/peliculas/:id', async (req, res) => {
+  const actualizada = await Pelicula.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(actualizada);
+});
+
 app.delete('/peliculas/:id', async (req, res) => {
   await Pelicula.findByIdAndDelete(req.params.id);
   res.json({ mensaje: 'Película eliminada' });
